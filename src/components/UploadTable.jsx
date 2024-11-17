@@ -5,27 +5,19 @@ import {
   Upload,
   Table,
   message,
-  theme,
-  Row,
-  Col,
   Popconfirm,
 } from "antd";
 import {
-  MenuFoldOutlined,
-  MenuUnfoldOutlined,
   UploadOutlined,
+  SyncOutlined,
 } from "@ant-design/icons";
 import axiosInstance from "../api/api.js";
 
-const { Header, Content, Footer } = Layout;
+const {Content, Footer } = Layout;
 
-const UploadTable = () => {
+const UploadTable = ({collapsed}) => {
   const [fileList, setFileList] = useState([]); // 保存文件列表
   const [loading, setLoading] = useState(false); // 上传按钮状态
-  const [collapsed, setCollapsed] = useState(false); // 侧边栏状态
-  const {
-    token: { colorBgContainer },
-  } = theme.useToken();
 
   // 上传文件
   const handleUpload = async (file) => {
@@ -36,7 +28,7 @@ const UploadTable = () => {
     try {
       // 替换为你的上传接口
       const response = await axiosInstance.post(
-        "http://localhost:3000/har/upload",
+        "/har/upload",
         formData,
         {
           headers: { "Content-Type": "multipart/form-data" },
@@ -60,16 +52,9 @@ const UploadTable = () => {
     try {
       // 替换为你的获取文件列表接口
       const response = await axiosInstance.get(
-        "http://localhost:3000/har/files"
+        "/har/files"
       );
-      setFileList(
-        response.data.map((item) => ({
-          key: item.key,
-          filename: item.filename,
-          path: item.path,
-          createdAt: item.createdAt,
-        }))
-      );
+      setFileList(response.data);
     } catch (error) {
       message.error("获取文件列表失败！");
     }
@@ -80,7 +65,7 @@ const UploadTable = () => {
     console.log(key);
     try {
       // 替换为你的删除文件接口
-      await axiosInstance.delete(`http://localhost:3000/har/files/${key}`);
+      await axiosInstance.delete(`/har/files/${key}`);
       getFileList();
       message.success(`文件 "${key}" 删除成功！`);
     } catch (error) {
@@ -89,13 +74,13 @@ const UploadTable = () => {
   };
 
   // 执行文件脚本
-  const handleActive = async (key) => {
+  const handleActive = async (row) => {
     try {
       // 替换为你的执行文件接口
-      await axiosInstance.post(`http://localhost:3000/har/run-script`);
-      message.success(`文件 "${key}" 执行成功！`);
+      await axiosInstance.post(`/har/run-script`,{filePath:row.path});
+      message.success(`文件 "${row.key}" 执行成功！`);
     } catch (error) {
-      message.error(`文件 "${key}" 执行失败！`);
+      message.error(`文件 "${row.key}" 执行失败！`);
     }
   };
 
@@ -111,10 +96,16 @@ const UploadTable = () => {
       handleUpload(file); // 调用上传逻辑
       return false; // 阻止默认上传行为
     },
+    accept: ".har,.HAR",
   };
 
   // 列表表头配置
   const columns = [
+    {
+      title: "序号",
+      dataIndex: "id",
+      key: "id",
+    },
     {
       title: "文件名",
       dataIndex: "filename",
@@ -144,7 +135,7 @@ const UploadTable = () => {
             style={{ marginRight: "10px" }}
             color="primary"
             variant="outlined"
-            onClick={() => handleActive(record.key)}
+            onClick={() => handleActive(record)}
           >
             执行
           </Button>
@@ -165,52 +156,23 @@ const UploadTable = () => {
   ];
   return (
     <>
-      <Row>
-        <Col span={24}>
-          <Header
-            style={{
-              background: colorBgContainer,
-              paddingLeft: "2px",
-              width: collapsed ? "calc(100vw - 98px)" : "calc(100vw - 218px)",
-            }}
-          >
-            <Button
-              type="text"
-              icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
-              onClick={() => setCollapsed(!collapsed)}
-              style={{
-                fontSize: "16px",
-                width: 64,
-                height: 64,
-              }}
-            />
-          </Header>
-        </Col>
-        <Col span={24}>
-          <Content
-            style={{
-              padding: "20px",
-              width: collapsed ? "calc(100vw - 98px)" : "calc(100vw - 218px)",
-            }}
-          >
-            <div style={{ marginBottom: "20px" }}>
-              <Upload {...uploadProps}>
-                <Button
-                  type="primary"
-                  icon={<UploadOutlined />}
-                  loading={loading}
-                >
-                  上传文件
-                </Button>
-              </Upload>
-            </div>
-            <Table dataSource={fileList} columns={columns} />
-            <Footer style={{ textAlign: "center" }}>
-              Ant Design ©2024 Created by You
-            </Footer>
-          </Content>
-        </Col>
-      </Row>
+      <Content
+        style={{
+          padding: "20px",
+          width: collapsed ? "calc(100vw - 98px)" : "calc(100vw - 218px)",
+        }}
+      >
+        <div style={{ marginBottom: "20px" }}>
+          <Upload {...uploadProps}>
+            <Button style={{marginRight: "10px"}} type="primary" icon={<UploadOutlined />} loading={loading}>
+              上传文件
+            </Button>
+          </Upload>
+          <Button icon={<SyncOutlined />} onClick={getFileList}></Button>
+
+        </div>
+        <Table dataSource={fileList} columns={columns} />
+      </Content>
     </>
   );
 };
