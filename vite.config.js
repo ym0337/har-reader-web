@@ -8,6 +8,7 @@ const mode = args.find(arg => arg.startsWith('--mode=')); // 查找自定义参�
 export default defineConfig({
   plugins: [react()],
   build: {
-    outDir: mode === '--mode=web'?'../har-reader-server/build_web':'./dist'  // 替换为你所需的输出目录
+    outDir: mode === '--mode=web'?'../har-reader-server/build_web':'./dist',  // 替换为你所需的输出目录
+    emptyOutDir: true, // 强制清空输出目录
   }
 })
