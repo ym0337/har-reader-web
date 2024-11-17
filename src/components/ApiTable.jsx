@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Layout, Button, Table, message, Modal, Input, Form } from "antd";
+import { Layout, Button, Table, message, Modal, Input, Form, Tag } from "antd";
 import axiosInstance, { baseURL } from "../api/api.js";
 
 const { Content } = Layout;
@@ -72,8 +72,11 @@ const ApiTable = ({ collapsed }) => {
       title: "method",
       dataIndex: "method",
       key: "method",
-      minWidth: 150,
+      minWidth: 100,
       align: "center",
+      render: (text) => (
+        <Tag color={text === "GET"? "volcano" : "green"}>{text}</Tag>
+      ),
     },
     {
       title: "请求路径",
