@@ -13,9 +13,9 @@ import {
 } from "@ant-design/icons";
 import axiosInstance from "../api/api.js";
 
-const {Content, Footer } = Layout;
+const {Content } = Layout;
 
-const UploadTable = ({collapsed}) => {
+const UploadTable = ({collapsed, onNotify}) => {
   const [fileList, setFileList] = useState([]); // 保存文件列表
   const [loading, setLoading] = useState(false); // 上传按钮状态
 
@@ -77,8 +77,9 @@ const UploadTable = ({collapsed}) => {
   const handleActive = async (row) => {
     try {
       // 替换为你的执行文件接口
-      await axiosInstance.post(`/har/run-script`,{filePath:row.path});
-      message.success(`文件 "${row.key}" 执行成功！`);
+      const response = await axiosInstance.post(`/har/run-script`,{filePath:row.path});
+      onNotify()
+      message.success(`文件 "${response.data.fileName}" 执行成功！`);
     } catch (error) {
       message.error(`文件 "${row.key}" 执行失败！`);
     }
