@@ -144,12 +144,14 @@ const ApiTable = ({ collapsed }) => {
             )}
           </Form.Item> */}
         </Form>
+        <div>
         <Table
           tableLayout="auto"
           dataSource={fileList}
           columns={columns}
-          scroll={{ x: "max-content" }}
+          scroll={{ x: "max-content", y: "calc(100vh - 400px)" }}
         />
+        </div>
         <Modal
           title={modalTitle}
           centered
