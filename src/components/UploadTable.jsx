@@ -1,21 +1,11 @@
 import React, { useState } from "react";
-import {
-  Layout,
-  Button,
-  Upload,
-  Table,
-  message,
-  Popconfirm,
-} from "antd";
-import {
-  UploadOutlined,
-  SyncOutlined,
-} from "@ant-design/icons";
+import { Layout, Button, Upload, Table, message, Popconfirm } from "antd";
+import { UploadOutlined, SyncOutlined } from "@ant-design/icons";
 import axiosInstance from "../api/api.js";
 
-const {Content } = Layout;
+const { Content } = Layout;
 
-const UploadTable = ({collapsed, onNotify}) => {
+const UploadTable = ({ collapsed, onNotify }) => {
   const [fileList, setFileList] = useState([]); // 保存文件列表
   const [loading, setLoading] = useState(false); // 上传按钮状态
 
@@ -27,13 +17,9 @@ const UploadTable = ({collapsed, onNotify}) => {
 
     try {
       // 替换为你的上传接口
-      const response = await axiosInstance.post(
-        "/har/upload",
-        formData,
-        {
-          headers: { "Content-Type": "multipart/form-data" },
-        }
-      );
+      const response = await axiosInstance.post("/har/upload", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
       message.success(
         `文件 "${response.data.filename}" ${response.data.message}`
       );
@@ -51,9 +37,7 @@ const UploadTable = ({collapsed, onNotify}) => {
   const getFileList = async () => {
     try {
       // 替换为你的获取文件列表接口
-      const response = await axiosInstance.get(
-        "/har/files"
-      );
+      const response = await axiosInstance.get("/har/files");
       setFileList(response.data);
     } catch (error) {
       message.error("获取文件列表失败！");
@@ -65,11 +49,11 @@ const UploadTable = ({collapsed, onNotify}) => {
     console.log(key);
     try {
       // 替换为你的删除文件接口
-      await axiosInstance.delete(`/har/files/${key}`);
+      const response = await axiosInstance.delete(`/har/files/${key}`);
       getFileList();
-      message.success(`文件 "${key}" 删除成功！`);
+      message.success(response.data.message);
     } catch (error) {
-      message.error(`文件 "${key}" 删除失败！`);
+      message.error(`文件删除失败！`);
     }
   };
 
@@ -77,8 +61,10 @@ const UploadTable = ({collapsed, onNotify}) => {
   const handleActive = async (row) => {
     try {
       // 替换为你的执行文件接口
-      const response = await axiosInstance.post(`/har/run-script`,{filePath:row.path});
-      onNotify()
+      const response = await axiosInstance.post(`/har/run-script`, {
+        filePath: row.path,
+      });
+      onNotify();
       message.success(`文件 "${response.data.fileName}" 执行成功！`);
     } catch (error) {
       message.error(`文件 "${row.key}" 执行失败！`);
@@ -105,31 +91,39 @@ const UploadTable = ({collapsed, onNotify}) => {
     {
       title: "序号",
       dataIndex: "id",
+      align: "center",
+      minWidth: 100,
       key: "id",
     },
     {
       title: "文件名",
       dataIndex: "filename",
+      align: "center",
+      minWidth: 200,
       key: "filename",
     },
     {
       title: "上传时间",
       dataIndex: "createdAt",
+      align: "center",
+      minWidth: 200,
       key: "createdAt",
     },
     {
       title: "文件地址",
       dataIndex: "path",
       key: "path",
-      render: (text) => (
-        <a href={text} target="_blank" rel="noopener noreferrer">
-          {text}
-        </a>
-      ),
+      // render: (text) => (
+      //   <a href={text} target="_blank" rel="noopener noreferrer">
+      //     {text}
+      //   </a>
+      // ),
     },
     {
       title: "操作",
+      fixed: "right",
       key: "action",
+      align: "center",
       render: (_, record) => (
         <>
           <Button
@@ -140,7 +134,6 @@ const UploadTable = ({collapsed, onNotify}) => {
           >
             执行
           </Button>
-
           <Popconfirm
             title="删除提示"
             description={`确认删除 "${record.filename}" 吗？`}
@@ -149,7 +142,7 @@ const UploadTable = ({collapsed, onNotify}) => {
             okText="是"
             cancelText="否"
           >
-            <Button danger>Delete</Button>
+            <Button danger>删除</Button>
           </Popconfirm>
         </>
       ),
@@ -165,14 +158,24 @@ const UploadTable = ({collapsed, onNotify}) => {
       >
         <div style={{ marginBottom: "20px" }}>
           <Upload {...uploadProps}>
-            <Button style={{marginRight: "10px"}} type="primary" icon={<UploadOutlined />} loading={loading}>
+            <Button
+              style={{ marginRight: "10px" }}
+              type="primary"
+              icon={<UploadOutlined />}
+              loading={loading}
+            >
               上传文件
             </Button>
           </Upload>
           <Button icon={<SyncOutlined />} onClick={getFileList}></Button>
-
         </div>
-        <Table dataSource={fileList} columns={columns} />
+        <Table
+          tableLayout="auto"
+          dataSource={fileList}
+          columns={columns}
+          scroll={{ x: "max-content", y: "calc(100vh - 350px)" }}
+          pagination={false}
+        />
       </Content>
     </>
   );

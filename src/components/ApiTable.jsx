@@ -1,5 +1,15 @@
 import React, { useState } from "react";
-import { Layout, Button, Table, message, Modal, Input, Form, Tag } from "antd";
+import {
+  Layout,
+  Button,
+  Table,
+  message,
+  Modal,
+  Input,
+  Form,
+  Tag,
+  Select,
+} from "antd";
 import axiosInstance, { baseURL } from "../api/api.js";
 
 const { Content } = Layout;
@@ -10,23 +20,41 @@ const ApiTable = ({ collapsed }) => {
   const [responseData, setResponseData] = useState("");
   const [modalTitle, setModalTitle] = useState("");
   const [allTableData, setAllTableData] = useState([]);
+  const [selectedRowKeys, setSelectedRowKeys] = useState([]);
 
   const [form] = Form.useForm();
 
-  const handleFilter = (val = "") => {
-    // console.log("Finish:", val);
-    // console.log(allTableData,'allTableData')
-    const filterData = allTableData.filter((item) => {
-      return item.path.includes(val.trim());
-    });
+  const onFormChange = () => {
+    const { method = "", path = "" } = form.getFieldsValue(["method", "path"]);
+    const methodVal = method.trim();
+    const pathVal = path.trim();
+    let filterData = [];
+    if (methodVal && pathVal) {
+      filterData = allTableData.filter((item) => {
+        return item.method === methodVal && item.path.includes(pathVal);
+      });
+    } else if (methodVal && !pathVal) {
+      filterData = allTableData.filter((item) => {
+        return item.method === methodVal;
+      });
+    } else if (!methodVal && pathVal) {
+      filterData = allTableData.filter((item) => {
+        return item.path.includes(pathVal);
+      });
+    } else {
+      filterData = allTableData;
+    }
     setFileList(filterData);
   };
 
   // 获取文件列表
-  const getFileList = async () => {
+  const getFileList = async (type = 0) => {
     try {
       // 替换为你的获取文件列表接口
       const response = await axiosInstance.get("/har/api/info");
+      if (type === 1) {
+        setSelectedRowKeys(response.data.methodOptions || []);
+      }
       const data = response.data.data.map((item) => ({
         ...item,
         key: item.apiName,
@@ -54,9 +82,53 @@ const ApiTable = ({ collapsed }) => {
     }
   };
 
+  const textColor = (text = "") => {
+    let color = "magenta";
+    switch (text.toUpperCase()) {
+      case "GET":
+        color = "cyan";
+        break;
+      case "POST":
+        color = "green";
+        break;
+      case "PUT":
+        color = "purple";
+        break;
+      case "DELETE":
+        color = "red";
+        break;
+      case "PATCH":
+        color = "orange";
+        break;
+      case "OPTIONS":
+        color = "gray";
+        break;
+      default:
+        color = "magenta";
+        break;
+    }
+    return color;
+  };
+
+  const isValidJson = (data) => {
+    if (typeof data !== "string") {
+      return false; // 只有字符串类型的数据才能被解析为 JSON
+    }
+    if (!data.includes("{") || !data.includes("}") || !data.includes(":")) {
+      return false; // 字符串中不包含 { 则不能被解析为 JSON
+    }else {
+      try {
+        JSON.parse(data);
+        return true;
+      } catch (e) {
+        return false;
+      }
+    }
+  };
+
   // 页面加载时获取文件列表
   React.useEffect(() => {
-    getFileList();
+    getFileList(1);
   }, []);
 
   // 列表表头配置
@@ -74,9 +146,7 @@ const ApiTable = ({ collapsed }) => {
       key: "method",
       minWidth: 100,
       align: "center",
-      render: (text) => (
-        <Tag color={text === "GET"? "volcano" : "green"}>{text}</Tag>
-      ),
+      render: (text) => <Tag color={textColor(text)}>{text}</Tag>,
     },
     {
       title: "/response/*.json",
@@ -84,46 +154,67 @@ const ApiTable = ({ collapsed }) => {
       key: "apiName",
       minWidth: 140,
       align: "center",
-      render: (text) => (
-        <span style={{color:"blue"}}>{text}</span>
-      ),
     },
     {
-      title: "请求路径",
+      title: "请求路径（双击复制）",
       dataIndex: "path",
       key: "path",
+      render: (text) => (
+        <a
+          style={{ color: "brown" }}
+          href="#"
+          target="_blank"
+          onClick={(event) => event.preventDefault()}
+          rel="noopener noreferrer"
+        >
+          {text}
+        </a>
+      ),
     },
     {
       title: "历史路径",
       dataIndex: "fullpath",
       key: "fullpath",
       // align: "center",
-      render: (text) => (
-        <a href={text} target="_blank" rel="noopener noreferrer">
-          {text}
-        </a>
-      ),
+      render: (text) => <span style={{ color: "gray" }}>{text}</span>,
     },
     {
       title: "操作",
       key: "action",
-      minWidth: 200,
       align: "center",
       fixed: "right",
       render: (_, record) => (
         <>
           <Button
-            style={{ marginRight: "10px" }}
             color="primary"
             variant="outlined"
             onClick={() => handleDetail(record)}
           >
-            查看返回值
+            响应数据
           </Button>
         </>
       ),
     },
   ];
+
+  const handleDoubleClick = (text) => {
+    navigator.clipboard
+      .writeText(text)
+      .then(() => {
+        message.success("复制成功！");
+      })
+      .catch(() => {
+        message.error("复制失败！");
+      });
+  };
+
+  const customColumns = columns.map((col) => ({
+    ...col,
+    onCell: (record) => ({
+      onDoubleClick: () => handleDoubleClick(record[col.dataIndex]),
+    }),
+  }));
+
   return (
     <>
       <Content
@@ -138,39 +229,54 @@ const ApiTable = ({ collapsed }) => {
           name="horizontal_login"
           layout="inline"
         >
-          <Form.Item name="path" onChange={(e) => handleFilter(e.target.value)}>
+          <Form.Item name="method">
+            <Select
+              style={{ width: "110px" }}
+              showSearch
+              placeholder="method"
+              onChange={onFormChange}
+              allowClear
+              options={selectedRowKeys.map((m) => {
+                return { value: m, label: m };
+              })}
+            />
+          </Form.Item>
+          <Form.Item name="path" onChange={() => onFormChange()}>
             <Input
               style={{ width: "400px" }}
               placeholder="请求路径"
               allowClear
-              onClear={() => handleFilter()}
+              onClear={() => onFormChange()}
             />
           </Form.Item>
-          {/* <Form.Item shouldUpdate>
-            {() => (
-              <Button type="primary" htmlType="submit">
-                查询
-              </Button>
-            )}
-          </Form.Item> */}
         </Form>
         <div>
-        <Table
-          tableLayout="auto"
-          dataSource={fileList}
-          columns={columns}
-          scroll={{ x: "max-content", y: "calc(100vh - 400px)" }}
-        />
+          <Table
+            tableLayout="auto"
+            dataSource={fileList}
+            columns={customColumns}
+            scroll={{ x: "max-content", y: "calc(100vh - 350px)" }}
+            pagination={false}
+          />
         </div>
         <Modal
           title={modalTitle}
           centered
           open={open}
           onCancel={() => setOpen(false)}
-          width={1000}
+          width={"80%"}
           maskClosable={false}
           footer={[
-            <Button key="ok" onClick={() => setOpen(false)}>关闭</Button>,
+            <Button
+              key="ok"
+              type="primary"
+              onClick={() => handleDoubleClick(responseData)}
+            >
+              复制
+            </Button>,
+            <Button key="cancel" onClick={() => setOpen(false)}>
+              关闭
+            </Button>,
           ]}
         >
           <pre
@@ -180,6 +286,7 @@ const ApiTable = ({ collapsed }) => {
               borderRadius: "5px",
               overflow: "auto",
               maxHeight: "80vh",
+              whiteSpace: isValidJson(responseData) ? "pre" : "normal",
             }}
           >
             {responseData}

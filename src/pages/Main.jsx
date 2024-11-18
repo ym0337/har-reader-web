@@ -1,11 +1,24 @@
 import React, { useState } from "react";
-import { Layout, Button, message, Menu, theme, Row, Col, Alert, Tag } from "antd";
+import {
+  Layout,
+  Button,
+  message,
+  Menu,
+  theme,
+  Row,
+  Col,
+  Alert,
+  Tag,
+} from "antd";
 import {
   MenuFoldOutlined,
   MenuUnfoldOutlined,
-  UserOutlined,
-  VideoCameraOutlined,
-  LoadingOutlined,
+  AliwangwangOutlined,
+  WechatOutlined,
+  SmileOutlined,
+  FrownOutlined,
+  FireOutlined,
+  AlertOutlined,
 } from "@ant-design/icons";
 import axiosInstance from "../api/api.js";
 import UploadTable from "../components/UploadTable";
@@ -16,7 +29,7 @@ const { Header, Footer, Sider } = Layout;
 const Main = () => {
   const [collapsed, setCollapsed] = useState(false); // 侧边栏状态
   const [selectMenu, setSelectMenu] = useState(""); // 选中菜单项
-  const [activeScript, setActiveScript] = useState('')
+  const [activeScript, setActiveScript] = useState("");
   const {
     token: { colorBgContainer },
   } = theme.useToken();
@@ -29,16 +42,16 @@ const Main = () => {
   const configInfo = async () => {
     try {
       const response = await axiosInstance.get("/har/config");
-      setActiveScript(`【${response.data.fileName}】【${response.data.date}】`)
+      setActiveScript(`【${response.data.fileName}】【${response.data.date}】`);
     } catch (error) {
-      setActiveScript('')
+      setActiveScript("");
     }
-  }
+  };
 
   // 页面加载时获取文件列表
   React.useEffect(() => {
     setSelectMenu("文件库");
-    configInfo()
+    configInfo();
   }, []);
 
   return (
@@ -52,7 +65,9 @@ const Main = () => {
             alignItems: "center",
           }}
         >
-          <div>工作台</div>
+          <div>
+            <FrownOutlined /> 工作台 <FireOutlined />
+          </div>
           <Button
             type="primary"
             onClick={() => {
@@ -61,7 +76,7 @@ const Main = () => {
               window.location.href = "/login";
             }}
           >
-            退出登录
+            退出 <SmileOutlined />
           </Button>
         </Header>
       </Layout>
@@ -81,12 +96,12 @@ const Main = () => {
             items={[
               {
                 key: "文件库",
-                icon: <UserOutlined />,
+                icon: <AliwangwangOutlined />,
                 label: "文件库",
               },
               {
                 key: "接口列表",
-                icon: <VideoCameraOutlined />,
+                icon: <WechatOutlined />,
                 label: "接口列表",
               },
             ]}
@@ -111,18 +126,30 @@ const Main = () => {
                   height: 64,
                 }}
               />
-              <Tag style={{fontSize:'16px',lineHeight:'32px'}} icon={<LoadingOutlined />} color="cyan">当前激活文件：{activeScript}</Tag>
+              <Tag
+                style={{ fontSize: "16px", lineHeight: "32px" }}
+                icon={<AlertOutlined />}
+                color="cyan"
+              >
+                当前激活文件：{activeScript}
+              </Tag>
             </Header>
           </Col>
           <Col span={24}>
             <div style={{ height: "calc(100vh - 218px)" }}>
-              {selectMenu === "文件库" && <UploadTable collapsed={collapsed} onNotify={configInfo} />}
+              {selectMenu === "文件库" && (
+                <UploadTable collapsed={collapsed} onNotify={configInfo} />
+              )}
               {selectMenu === "接口列表" && <ApiTable collapsed={collapsed} />}
             </div>
           </Col>
           <Col span={24}>
             <Footer style={{ textAlign: "center" }}>
-            <Alert message="每次只能解析一个.har文件，重复【执行】会清除保留最新数据" type="error" showIcon />
+              <Alert
+                message="每次只能解析一个.har文件，重复【执行】会清除保留最新数据"
+                type="error"
+                showIcon
+              />
             </Footer>
           </Col>
         </Row>
