@@ -1,9 +1,14 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import React, { useEffect } from "react";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
 // import { createBrowserRouter, RouterProvider } from 'react-router-dom';
-import Login from './pages/Login';
-import Main from './pages/Main';
-import ProtectedRoute from './components/ProtectedRoute';
+import Login from "./pages/Login";
+import Main from "./pages/Main";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 // const router = createBrowserRouter([
 //   // 你的路由配置
@@ -23,8 +28,11 @@ import ProtectedRoute from './components/ProtectedRoute';
 //   },
 // });
 
-
 const App = () => {
+  useEffect(() => {
+    // 假设已经登录成功
+    localStorage.setItem('isAuthenticated', 'true');
+  }, []);
   return (
     <Router>
       <Routes>
@@ -32,7 +40,7 @@ const App = () => {
         {/* 受保护的主页面 */}
         <Route path="/main" element={<ProtectedRoute><Main /></ProtectedRoute>} />
         {/* 默认重定向到登录页 */}
-        <Route path="*" element={<Navigate to="/login" />} />
+        <Route path="*" element={<Navigate to="/Main" />} />
       </Routes>
     </Router>
     // <RouterProvider router={router} />
