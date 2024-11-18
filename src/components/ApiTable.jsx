@@ -79,6 +79,16 @@ const ApiTable = ({ collapsed }) => {
       ),
     },
     {
+      title: "/response/*.json",
+      dataIndex: "apiName",
+      key: "apiName",
+      minWidth: 140,
+      align: "center",
+      render: (text) => (
+        <span style={{color:"blue"}}>{text}</span>
+      ),
+    },
+    {
       title: "请求路径",
       dataIndex: "path",
       key: "path",
