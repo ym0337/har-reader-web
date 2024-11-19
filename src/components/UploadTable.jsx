@@ -8,6 +8,19 @@ const { Content } = Layout;
 const UploadTable = ({ collapsed, onNotify }) => {
   const [fileList, setFileList] = useState([]); // 保存文件列表
   const [loading, setLoading] = useState(false); // 上传按钮状态
+  const [activeBtnLoadings, setActiveBtnLoadings] = useState([]); // 上传按钮状态
+
+  const handleActiveLoading = (index) => {
+    const newActiveBtnLoadings = [...activeBtnLoadings];
+    newActiveBtnLoadings[index] = true;
+    setActiveBtnLoadings(newActiveBtnLoadings);
+  };
+
+  const handleActiveDone = (index) => {
+    const newActiveBtnLoadings = [...activeBtnLoadings];
+    newActiveBtnLoadings[index] = false;
+    setActiveBtnLoadings(newActiveBtnLoadings);
+  };
 
   // 上传文件
   const handleUpload = async (file) => {
@@ -58,7 +71,8 @@ const UploadTable = ({ collapsed, onNotify }) => {
   };
 
   // 执行文件脚本
-  const handleActive = async (row) => {
+  const handleActive = async (row,index) => {
+    handleActiveLoading(index);
     try {
       // 替换为你的执行文件接口
       const response = await axiosInstance.post(`/har/run-script`, {
@@ -69,6 +83,7 @@ const UploadTable = ({ collapsed, onNotify }) => {
     } catch (error) {
       message.error(`文件 "${row.key}" 执行失败！`);
     }
+    handleActiveDone(index);
   };
 
   // 页面加载时获取文件列表
@@ -124,13 +139,13 @@ const UploadTable = ({ collapsed, onNotify }) => {
       fixed: "right",
       key: "action",
       align: "center",
-      render: (_, record) => (
+      render: (_, record,index) => (
         <>
           <Button
             style={{ marginRight: "10px" }}
-            color="primary"
-            variant="outlined"
-            onClick={() => handleActive(record)}
+            type="primary"
+            onClick={() => handleActive(record,index)}
+            loading={activeBtnLoadings[index]}
           >
             执行
           </Button>
