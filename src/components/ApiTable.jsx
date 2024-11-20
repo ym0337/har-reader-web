@@ -24,27 +24,43 @@ const ApiTable = ({ collapsed }) => {
 
   const [form] = Form.useForm();
 
+  const timer = React.useRef(null); // 定时器
+
   const onFormChange = () => {
-    const { method = "", path = "" } = form.getFieldsValue(["method", "path"]);
-    const methodVal = method.trim();
-    const pathVal = path.trim();
-    let filterData = [];
-    if (methodVal && pathVal) {
-      filterData = allTableData.filter((item) => {
-        return item.method === methodVal && item.path.includes(pathVal);
-      });
-    } else if (methodVal && !pathVal) {
-      filterData = allTableData.filter((item) => {
-        return item.method === methodVal;
-      });
-    } else if (!methodVal && pathVal) {
-      filterData = allTableData.filter((item) => {
-        return item.path.includes(pathVal);
-      });
-    } else {
-      filterData = allTableData;
+    // 清空定时器
+    if (timer.current) {
+      clearTimeout(timer.current);
     }
-    setFileList(filterData);
+    // 设置定时器
+    timer.current = setTimeout(() => {
+      console.log('过滤数据')
+      const { method = "", path = "" } = form.getFieldsValue([
+        "method",
+        "path",
+      ]);
+      const methodVal = method.trim();
+      const pathVal = path.trim();
+      let filterData = [];
+      if (methodVal && pathVal) {
+        filterData = allTableData.filter((item) => {
+          return (
+            item.method === methodVal &&
+            item.path.toLowerCase().includes(pathVal.toLowerCase())
+          );
+        });
+      } else if (methodVal && !pathVal) {
+        filterData = allTableData.filter((item) => {
+          return item.method === methodVal;
+        });
+      } else if (!methodVal && pathVal) {
+        filterData = allTableData.filter((item) => {
+          return item.path.toLowerCase().includes(pathVal.toLowerCase());
+        });
+      } else {
+        filterData = allTableData;
+      }
+      setFileList(filterData);
+    }, 500);
   };
 
   // 获取文件列表
@@ -116,7 +132,7 @@ const ApiTable = ({ collapsed }) => {
     }
     if (!data.includes("{") || !data.includes("}") || !data.includes(":")) {
       return false; // 字符串中不包含 { 则不能被解析为 JSON
-    }else {
+    } else {
       try {
         JSON.parse(data);
         return true;
