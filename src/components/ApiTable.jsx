@@ -86,15 +86,14 @@ const ApiTable = ({ collapsed }) => {
     }
   };
 
-  // 执行文件脚本
-  const handleDetail = async ({ method, path, apiName }) => {
+  const handleDetail = async ({ id, method, path}) => {
     try {
-      const response = await axiosInstance.get(`/har/api/detail/${apiName}`);
+      const response = await axiosInstance.get(`/har/api/detail/${id}`);
       setResponseData(JSON.stringify(response.data, null, 2));
       setModalTitle(`【${method}】${baseURL}${path}`);
       setOpen(true);
     } catch (error) {
-      message.error(`文件 "${apiName}" 执行失败！`);
+      message.error(`文件执行失败:`,error);
     }
   };
 
@@ -164,13 +163,13 @@ const ApiTable = ({ collapsed }) => {
       align: "center",
       render: (text) => <Tag color={textColor(text)}>{text}</Tag>,
     },
-    {
-      title: "/response/*.json",
-      dataIndex: "apiName",
-      key: "apiName",
-      minWidth: 140,
-      align: "center",
-    },
+    // {
+    //   title: "/response/*.json",
+    //   dataIndex: "apiName",
+    //   key: "apiName",
+    //   minWidth: 140,
+    //   align: "center",
+    // },
     {
       title: "请求路径（双击复制）",
       dataIndex: "path",
