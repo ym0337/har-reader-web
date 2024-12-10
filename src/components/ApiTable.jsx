@@ -73,16 +73,12 @@ const ApiTable = ({ collapsed }) => {
       }
       const data = response.data.data.map((item) => ({
         ...item,
-        key: item.apiName,
-        // method: item.method,
-        // apiName: item.apiName,
-        // path: item.path,
-        // fullpath: item.fullpath,
+        key: item.id,
       }));
       setAllTableData(data);
       setFileList(data);
     } catch (error) {
-      message.error("获取文件列表失败！");
+      message.error(`获取文件列表失败: ${error}`);
     }
   };
 
@@ -150,15 +146,15 @@ const ApiTable = ({ collapsed }) => {
   const columns = [
     {
       title: "序号",
-      dataIndex: "id",
-      key: "id",
+      dataIndex: "no",
+      // key: "no",
       minWidth: 100,
       align: "center",
     },
     {
       title: "method",
       dataIndex: "method",
-      key: "method",
+      // key: "method",
       minWidth: 100,
       align: "center",
       render: (text) => <Tag color={textColor(text)}>{text}</Tag>,
@@ -173,7 +169,7 @@ const ApiTable = ({ collapsed }) => {
     {
       title: "请求路径（双击复制）",
       dataIndex: "path",
-      key: "path",
+      // key: "path",
       render: (text) => (
         <a
           style={{ color: "brown" }}
@@ -189,7 +185,7 @@ const ApiTable = ({ collapsed }) => {
     {
       title: "历史路径",
       dataIndex: "fullpath",
-      key: "fullpath",
+      // key: "fullpath",
       // align: "center",
       render: (text) => <span style={{ color: "gray" }}>{text}</span>,
     },

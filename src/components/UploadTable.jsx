@@ -40,7 +40,7 @@ const UploadTable = ({ collapsed, onNotify }) => {
       // 更新文件列表
       getFileList();
     } catch (error) {
-      message.error(`文件 "${file.name}" 上传失败！`);
+      message.error(`文件 "${file.name}" 上传失败！: ${error}`);
     } finally {
       setLoading(false);
     }
@@ -66,9 +66,20 @@ const UploadTable = ({ collapsed, onNotify }) => {
       getFileList();
       message.success(response.data.message);
     } catch (error) {
-      message.error(`文件删除失败！`);
+      message.error(`文件删除失败: ${error}`);
     }
   };
+
+  // 删除har生成的接口
+  const handleDeleteApis = async (key) => {
+    try {
+      // 替换为你的删除接口接口
+      const response = await axiosInstance.delete(`/har/apisbykey/${key}`);
+      message.success(response.data.message);
+    } catch (error) {
+      message.error(`删除接口失败: ${error}`);
+    }
+  }
 
   // 执行文件脚本
   const handleActive = async (row,index) => {
@@ -77,11 +88,13 @@ const UploadTable = ({ collapsed, onNotify }) => {
       // 替换为你的执行文件接口
       const response = await axiosInstance.post(`/har/run-script`, {
         filePath: row.path,
+        key: row.key,
+        filename: row.filename,
       });
       onNotify();
-      message.success(`文件 "${response.data.fileName}" 执行成功！`);
+      message.success(response.data.message);
     } catch (error) {
-      message.error(`文件 "${row.key}" 执行失败！`);
+      message.error(`文件 "${row.key}" 执行失败: ${error}`);
     }
     handleActiveDone(index);
   };
@@ -105,29 +118,29 @@ const UploadTable = ({ collapsed, onNotify }) => {
   const columns = [
     {
       title: "序号",
-      dataIndex: "id",
+      dataIndex: "no",
       align: "center",
       minWidth: 100,
-      key: "id",
+      // key: "no",
     },
     {
       title: "文件名",
       dataIndex: "filename",
       align: "center",
       minWidth: 200,
-      key: "filename",
+      // key: "filename",
     },
     {
       title: "上传时间",
       dataIndex: "createdAt",
       align: "center",
       minWidth: 200,
-      key: "createdAt",
+      // key: "createdAt",
     },
     {
       title: "文件地址",
       dataIndex: "path",
-      key: "path",
+      // key: "path",
       // render: (text) => (
       //   <a href={text} target="_blank" rel="noopener noreferrer">
       //     {text}
@@ -147,7 +160,7 @@ const UploadTable = ({ collapsed, onNotify }) => {
             onClick={() => handleActive(record,index)}
             loading={activeBtnLoadings[index]}
           >
-            执行
+            生成接口
           </Button>
           <Popconfirm
             title="删除提示"
@@ -157,7 +170,17 @@ const UploadTable = ({ collapsed, onNotify }) => {
             okText="是"
             cancelText="否"
           >
-            <Button danger>删除</Button>
+            <Button danger style={{ marginRight: "10px" }}>删除</Button>
+          </Popconfirm>
+          <Popconfirm
+            title="删除接口提示"
+            description={`确认删除 "${record.filename}" 生成的接口吗？`}
+            onConfirm={() => handleDeleteApis(record.key)}
+            onCancel={() => message.error("取消删除接口")}
+            okText="是"
+            cancelText="否"
+          >
+            <Button style={{ marginRight: "0" }}>删除接口</Button>
           </Popconfirm>
         </>
       ),

@@ -126,24 +126,24 @@ const Main = () => {
                   height: 64,
                 }}
               />
-              <Tag
+              {/* <Tag
                 style={{ fontSize: "16px", lineHeight: "32px" }}
                 icon={<AlertOutlined />}
                 color="cyan"
               >
                 当前激活文件：{activeScript}
-              </Tag>
+              </Tag> */}
             </Header>
           </Col>
           <Col span={24}>
-            <div style={{ height: "calc(100vh - 218px)" }}>
+            <div style={{ height: "calc(100vh - 129px)" }}>
               {selectMenu === "文件库" && (
                 <UploadTable collapsed={collapsed} onNotify={configInfo} />
               )}
               {selectMenu === "接口列表" && <ApiTable collapsed={collapsed} />}
             </div>
           </Col>
-          <Col span={24}>
+          {/* <Col span={24}>
             <Footer style={{ textAlign: "center" }}>
               <Alert
                 message="每次只能解析一个.har文件，重复【执行】会清除保留最新数据"
@@ -151,7 +151,7 @@ const Main = () => {
                 showIcon
               />
             </Footer>
-          </Col>
+          </Col> */}
         </Row>
       </Layout>
     </>
