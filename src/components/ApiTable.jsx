@@ -337,7 +337,7 @@ const ApiTable = ({ collapsed }) => {
             tableLayout="auto"
             dataSource={fileList}
             columns={customColumns}
-            scroll={{ x: "max-content", y: "calc(100vh - 350px)" }}
+            scroll={{ x: "max-content", y: "calc(100vh - 270px)" }}
             pagination={false}
           />
         </div>
