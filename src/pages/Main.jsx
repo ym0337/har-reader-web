@@ -7,8 +7,8 @@ import {
   theme,
   Row,
   Col,
-  Alert,
   Tag,
+  Switch,
 } from "antd";
 import {
   MenuFoldOutlined,
@@ -19,6 +19,8 @@ import {
   FrownOutlined,
   FireOutlined,
   AlertOutlined,
+  CheckOutlined,
+  CloseOutlined,
 } from "@ant-design/icons";
 import axiosInstance from "../api/api.js";
 import UploadTable from "../components/UploadTable";
@@ -47,6 +49,10 @@ const Main = () => {
       setActiveScript("");
     }
   };
+
+  const changeSwitch = (checked) => {
+    console.log(checked);
+  }
 
   // 页面加载时获取文件列表
   React.useEffect(() => {
@@ -126,13 +132,19 @@ const Main = () => {
                   height: 64,
                 }}
               />
-              {/* <Tag
+              <Tag
                 style={{ fontSize: "16px", lineHeight: "32px" }}
                 icon={<AlertOutlined />}
                 color="cyan"
               >
-                当前激活文件：{activeScript}
-              </Tag> */}
+                <span>接口是否开启动传参匹配(只支持GET,POST请求)：</span>
+                <Switch
+                  checkedChildren={<CheckOutlined />}
+                  unCheckedChildren={<CloseOutlined />}
+                  defaultChecked={false}
+                  onChange={(checked) => {changeSwitch(checked)}}
+                />
+              </Tag>
             </Header>
           </Col>
           <Col span={24}>

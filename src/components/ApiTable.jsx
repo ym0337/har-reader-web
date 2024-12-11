@@ -9,6 +9,7 @@ import {
   Form,
   Tag,
   Select,
+  Tooltip,
 } from "antd";
 import axiosInstance, { baseURL } from "../api/api.js";
 
@@ -33,7 +34,7 @@ const ApiTable = ({ collapsed }) => {
     }
     // 设置定时器
     timer.current = setTimeout(() => {
-      console.log('过滤数据')
+      console.log("过滤数据");
       const { method = "", path = "" } = form.getFieldsValue([
         "method",
         "path",
@@ -82,14 +83,14 @@ const ApiTable = ({ collapsed }) => {
     }
   };
 
-  const handleDetail = async ({ id, method, path}) => {
+  const handleDetail = async ({ id, method, path }) => {
     try {
       const response = await axiosInstance.get(`/har/api/detail/${id}`);
       setResponseData(JSON.stringify(response.data, null, 2));
       setModalTitle(`【${method}】${baseURL}${path}`);
       setOpen(true);
     } catch (error) {
-      message.error(`文件执行失败:`,error);
+      message.error(`文件执行失败:`, error);
     }
   };
 
@@ -159,16 +160,10 @@ const ApiTable = ({ collapsed }) => {
       align: "center",
       render: (text) => <Tag color={textColor(text)}>{text}</Tag>,
     },
-    // {
-    //   title: "/response/*.json",
-    //   dataIndex: "apiName",
-    //   key: "apiName",
-    //   minWidth: 140,
-    //   align: "center",
-    // },
     {
-      title: "请求路径（双击复制）",
+      title: "请求路径（单元格都可以双击复制）",
       dataIndex: "path",
+      minWidth: 250,
       // key: "path",
       render: (text) => (
         <a
@@ -183,11 +178,87 @@ const ApiTable = ({ collapsed }) => {
       ),
     },
     {
-      title: "历史路径",
+      title: "本地完整请求路径",
+      dataIndex: "localFullPath",
+      // minWidth: 500,
+      // key: "path",
+      render: (text) => (
+        <Tooltip title={text}>
+        <div
+          style={{
+            color: "brown",
+            whiteSpace: "nowrap",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            maxWidth: 800, // 根据需要设置宽度
+          }}
+        >
+          {text}
+        </div>
+      </Tooltip>
+      ),
+    },
+    // {
+    //   title: "get传参",
+    //   dataIndex: "queryString",
+    //   minWidth: 300,
+    //   align: "center",
+    //   render: (text) => (
+    //     <Tooltip title={text}>
+    //       <div
+    //         style={{
+    //           whiteSpace: "nowrap",
+    //           overflow: "hidden",
+    //           textOverflow: "ellipsis",
+    //           width: 300, // 根据需要设置宽度
+    //         }}
+    //       >
+    //         {text}
+    //       </div>
+    //     </Tooltip>
+    //   ),
+    // },
+    {
+      title: "post传参",
+      dataIndex: "postData",
+      minWidth: 300,
+      align: "center",
+      render: (text) => (
+        <Tooltip title={text}>
+          <div
+            style={{
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              width: 300, // 根据需要设置宽度
+            }}
+          >
+            {text}
+          </div>
+        </Tooltip>
+      ),
+    },
+    {
+      title: "源请求路径",
       dataIndex: "fullpath",
+      minWidth: 300,
       // key: "fullpath",
       // align: "center",
-      render: (text) => <span style={{ color: "gray" }}>{text}</span>,
+      // render: (text) => <span style={{ color: "gray" }}>{text}</span>,
+      render: (text) => (
+        <Tooltip title={text}>
+          <div
+            style={{
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              width: 300, // 根据需要设置宽度
+            }}
+          >
+            {text}
+          </div>
+        </Tooltip>
+      ),
     },
     {
       title: "操作",
