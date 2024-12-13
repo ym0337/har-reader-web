@@ -31,7 +31,7 @@ const { Header, Footer, Sider } = Layout;
 const Main = () => {
   const [collapsed, setCollapsed] = useState(false); // 侧边栏状态
   const [selectMenu, setSelectMenu] = useState(""); // 选中菜单项
-  const [activeScript, setActiveScript] = useState("");
+  const [switchChecked, setSwitchChecked] = useState(false); // 选中菜单项
   const {
     token: { colorBgContainer },
   } = theme.useToken();
@@ -42,22 +42,33 @@ const Main = () => {
   };
 
   const configInfo = async () => {
-    try {
-      const response = await axiosInstance.get("/har/config");
-      setActiveScript(`【${response.data.fileName}】【${response.data.date}】`);
-    } catch (error) {
-      setActiveScript("");
-    }
+    // onNotify 是一个回调函数，通常用于在组件之间传递信息或更新状态
+    console.log("configInfo onNotify");
   };
 
   const changeSwitch = (checked) => {
-    console.log(checked);
+    // console.log(checked);
+    axiosInstance.post("/har/config/allowParameterTransmission", {
+      allow: checked,
+    }).then((res) => {
+      setSwitchChecked(checked);
+      message.success(res.message || "配置成功");
+    }).catch((err) => {
+      console.log(err);
+      message.error(err || "配置失败");
+    });
   }
 
   // 页面加载时获取文件列表
   React.useEffect(() => {
     setSelectMenu("文件库");
-    configInfo();
+    // 获取配置，设置是否匹配传参
+    axiosInstance.get("/har/config/server").then((res) => {
+      console.log(res.data.config.allow);
+      setSwitchChecked(res.data.config.allow);
+    }).catch((err) => {
+      message.error(err || "获取配置失败");
+    });
   }, []);
 
   return (
@@ -137,11 +148,11 @@ const Main = () => {
                 icon={<AlertOutlined />}
                 color="cyan"
               >
-                <span>接口是否开启动传参匹配(只支持GET,POST请求)：</span>
+                <span>接口是否开启动传参匹配(只支持GET,POST请求且post传参必须是对象)：</span>
                 <Switch
                   checkedChildren={<CheckOutlined />}
                   unCheckedChildren={<CloseOutlined />}
-                  defaultChecked={false}
+                  checked={switchChecked}
                   onChange={(checked) => {changeSwitch(checked)}}
                 />
               </Tag>
