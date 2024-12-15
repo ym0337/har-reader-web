@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, act } from "react";
 import { PlusOutlined } from "@ant-design/icons";
 import {
   Layout,
@@ -12,9 +12,13 @@ import {
   Select,
   Tooltip,
   Pagination,
+  Switch,
+  Popconfirm,
+  DatePicker,
 } from "antd";
 import axiosInstance, { baseURL } from "../api/api.js";
 
+const { TextArea } = Input;
 const { Content } = Layout;
 
 const ApiTable = ({ collapsed }) => {
@@ -26,6 +30,8 @@ const ApiTable = ({ collapsed }) => {
   const [pageNo, setPageNo] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [total, setTotal] = useState(0);
+  const [addModalOpen, setAddModalOpen] = useState(false);
+  const [methodStr, setMethodStr] = useState(false);
 
   const [form] = Form.useForm();
 
@@ -35,13 +41,11 @@ const ApiTable = ({ collapsed }) => {
       const {
         method = "",
         path = "",
-        originfile = "",
-      } = form.getFieldsValue(["method", "path", "originfile"]);
-      const response = await axiosInstance.get("/har/api/info", {
+      } = form.getFieldsValue(["method", "path"]);
+      const response = await axiosInstance.get("/har/myApi/list", {
         params: {
           method: method.trim(),
           path: path.trim(),
-          originfile: originfile.trim(),
           pageNo: pageNo,
           pageSize: pageSize,
         },
@@ -64,12 +68,58 @@ const ApiTable = ({ collapsed }) => {
 
   const handleDetail = async ({ id, method, path }) => {
     try {
-      const response = await axiosInstance.get(`/har/api/detail/${id}`);
+      const response = await axiosInstance.get(`/har/myApi/detail/${id}`);
       setResponseData(JSON.stringify(response.data, null, 2));
       setModalTitle(`【${method}】${baseURL}${path}`);
       setOpen(true);
     } catch (error) {
-      message.error(`文件执行失败:`, error);
+      message.error(`请求失败:`, error);
+    }
+  };
+
+  const handleDelete = async ({ id }) => {
+    try {
+      const response = await axiosInstance.delete(`/har/myApi/delete/${id}`);
+      message.success(response.data.message);
+      getFileList();
+    } catch (error) {
+      message.error(`请求失败:`, error);
+    }
+  };
+
+  const handleUpdate = (row, type=1) => {
+    let params = {}
+    if(type == 1){
+      params = {...row}
+    }else if(type == 2){
+      params = {
+        ...row,
+        active: row.active === "激活" ? false : true,
+      }
+    }
+    updateData(params);
+  };
+
+  const updateData = async (params) => {
+    try {
+      const response = await axiosInstance.put(`/har/myApi/update`, params);
+      message.success(response.data.message);
+      setAddModalOpen(false);
+      getFileList();
+    } catch (error) {
+      message.error(`请求失败:`, error);
+    }
+  };
+
+  const addData = async (params) => {
+    try {
+      const response = await axiosInstance.post(`/har/myApi/add`, params);
+      // console.log("response", response);
+      message.success(response.data.message);
+      setAddModalOpen(false);
+      getFileList();
+    } catch (error) {
+      message.error("新增失败！", error);
     }
   };
 
@@ -121,6 +171,60 @@ const ApiTable = ({ collapsed }) => {
     }
   };
 
+  const [basicForm] = Form.useForm();
+
+  const showModal = (row = null) => {
+    // console.log("showModal row", row);
+    if (row) {
+      setMethodStr(row.method || "GET");
+      basicForm.setFieldsValue({
+        ...row,
+        active: row.active === "激活" ? true : false,
+      });
+    } else {
+      setMethodStr("GET");
+      basicForm.resetFields();
+    }
+    setAddModalOpen(true);
+  };
+
+  const handleOk = () => {
+    // console.log("basicForm", basicForm.getFieldsValue());
+    // 触发表单提交
+    basicForm.submit(); // 调用表单的submit方法
+  };
+
+  const handleCancel = () => {
+    setAddModalOpen(false);
+  };
+
+  const onFinish = async (values) => {
+    // console.log("Success:", values);
+    // editStatus
+    const { method, path, postData, content, active, id } = values;
+    if (id) {
+      updateData({
+        method,
+        path,
+        postData,
+        content,
+        active,
+        id,
+      });
+    } else {
+      addData({
+        method,
+        path,
+        postData,
+        content,
+        active,
+      });
+    }
+  };
+  const onFinishFailed = (errorInfo) => {
+    console.log("Failed:", errorInfo);
+  };
+
   // 页面加载时获取文件列表
   useEffect(() => {
     getFileList(1);
@@ -131,14 +235,12 @@ const ApiTable = ({ collapsed }) => {
     {
       title: "序号",
       dataIndex: "no",
-      // key: "no",
       minWidth: 100,
       align: "center",
     },
     {
       title: "method",
       dataIndex: "method",
-      // key: "method",
       minWidth: 100,
       align: "center",
       render: (text) => <Tag color={textColor(text)}>{text}</Tag>,
@@ -147,7 +249,6 @@ const ApiTable = ({ collapsed }) => {
       title: "请求路径（单元格都可以双击复制）",
       dataIndex: "path",
       minWidth: 250,
-      // key: "path",
       render: (text) => (
         <a
           style={{ color: "brown" }}
@@ -162,21 +263,10 @@ const ApiTable = ({ collapsed }) => {
     },
     {
       title: "状态",
-      dataIndex: "originfile",
-      minWidth: 200,
+      dataIndex: "active",
+      width: 80,
       render: (text) => (
-        <Tooltip title={text}>
-          <div
-            style={{
-              whiteSpace: "nowrap",
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              maxWidth: 200, // 根据需要设置宽度
-            }}
-          >
-            {text}
-          </div>
-        </Tooltip>
+        <Tag color={text === "激活" ? "green" : "red"}>{text}</Tag>
       ),
     },
     {
@@ -207,6 +297,7 @@ const ApiTable = ({ collapsed }) => {
       render: (_, record) => (
         <>
           <Button
+            style={{ marginRight: "5px" }}
             color="primary"
             variant="outlined"
             onClick={() => handleDetail(record)}
@@ -214,26 +305,36 @@ const ApiTable = ({ collapsed }) => {
             响应数据
           </Button>
           <Button
+            style={{ marginRight: "5px" }}
             color="primary"
-            variant="outlined"
-            onClick={() => handleDetail(record)}
+            variant="solid"
+            onClick={() => showModal(record)}
           >
             编辑
           </Button>
           <Button
+            style={{
+              marginRight: "5px",
+              color: record.active === "激活" ? "red" : "green",
+            }}
             color="primary"
             variant="outlined"
-            onClick={() => handleDetail(record)}
+            onClick={() => handleUpdate(record,'2')}
           >
-            禁用
+            {record.active === "激活" ? "禁用" : "激活"}
           </Button>
-          <Button
-            color="primary"
-            variant="outlined"
-            onClick={() => handleDetail(record)}
+          <Popconfirm
+            title="删除提示"
+            description={`确认删除 "${record.path}" 吗？`}
+            onConfirm={() => handleDelete(record)}
+            onCancel={() => message.error("取消删除")}
+            okText="是"
+            cancelText="否"
           >
-            删除
-          </Button>
+            <Button color="danger" variant="solid">
+              删除
+            </Button>
+          </Popconfirm>
         </>
       ),
     },
@@ -276,6 +377,7 @@ const ApiTable = ({ collapsed }) => {
               type="primary"
               shape="round"
               icon={<PlusOutlined />}
+              onClick={() => showModal()}
             ></Button>
           </Form.Item>
           <Form.Item name="method">
@@ -301,17 +403,7 @@ const ApiTable = ({ collapsed }) => {
               // onClear={() => onFormChange()}
             />
           </Form.Item>
-          <Form.Item name="originfile">
-            <Input
-              style={{ width: "200px" }}
-              placeholder="所属文件"
-              allowClear
-            />
-          </Form.Item>
-          <Button
-            type="primary"
-            onClick={() => getFileList()}
-          >
+          <Button type="primary" onClick={() => getFileList()}>
             查询
           </Button>
         </Form>
@@ -368,6 +460,109 @@ const ApiTable = ({ collapsed }) => {
           >
             {responseData}
           </pre>
+        </Modal>
+
+        <Modal
+          title="自定义接口"
+          centered
+          open={addModalOpen}
+          okText="保存"
+          cancelText="取消"
+          onOk={handleOk}
+          onCancel={handleCancel}
+        >
+          <Form
+            name="basic"
+            form={basicForm}
+            labelCol={{
+              span: 4,
+            }}
+            wrapperCol={{
+              span: 20,
+            }}
+            style={{
+              maxWidth: 600,
+            }}
+            initialValues={{
+              method: "GET",
+              path: "",
+              active: true,
+              content: "",
+              postData: "",
+              id: ""
+            }}
+            onFinish={onFinish}
+            onFinishFailed={onFinishFailed}
+            autoComplete="off"
+          >
+            <Form.Item label="ID" name="id" style={{ display: "none" }}>
+              {/* 如果你想隐藏 ID 输入框，可以设置为 display: 'none' */}
+              <Input/>
+            </Form.Item>
+            <Form.Item
+              label="请求类型"
+              name="method"
+              rules={[
+                {
+                  required: true,
+                  message: "请求类型不能为空！",
+                },
+              ]}
+            >
+              <Select
+                onChange={(val) => {
+                  setMethodStr(val);
+                }}
+              >
+                {["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"].map(
+                  (m) => (
+                    <Select.Option key={m} value={m}>
+                      {" "}
+                      {m}{" "}
+                    </Select.Option>
+                  )
+                )}
+              </Select>
+            </Form.Item>
+
+            <Form.Item
+              label="请求路径"
+              name="path"
+              rules={[
+                {
+                  required: true,
+                  message: "请求路径不能为空！",
+                },
+              ]}
+            >
+              <Input />
+            </Form.Item>
+
+            <Form.Item label="是否激活" name="active">
+              <Switch />
+            </Form.Item>
+
+            <Form.Item label="post传参" name="postData">
+              <TextArea
+                rows={4}
+                disabled={methodStr == "GET" || methodStr == "DELETE"}
+              />
+            </Form.Item>
+
+            <Form.Item label="响应数据" name="content">
+              <TextArea rows={8} />
+            </Form.Item>
+
+            {/* <Form.Item label="创建时间" name="createdate">
+              <DatePicker />
+            </Form.Item> */}
+
+            {/* <Form.Item label={null}>
+              <Button type="primary" htmlType="submit">
+                Submit
+              </Button>
+            </Form.Item> */}
+          </Form>
         </Modal>
       </Content>
     </>
