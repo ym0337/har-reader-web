@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
+import { PlusOutlined } from "@ant-design/icons";
 import {
   Layout,
   Button,
@@ -74,12 +75,6 @@ const ApiTable = ({ collapsed }) => {
 
   const onPageChange = (page) => {
     setPageNo(page);
-  };
-
-  const onShowSizeChange = (current, newPageSize) => {
-    // 有bug,处理不了
-    // setPageSize(newPageSize);
-    // setPageNo(1);
   };
 
   const textColor = (text = "") => {
@@ -166,7 +161,7 @@ const ApiTable = ({ collapsed }) => {
       ),
     },
     {
-      title: "所属文件",
+      title: "状态",
       dataIndex: "originfile",
       minWidth: 200,
       render: (text) => (
@@ -185,73 +180,10 @@ const ApiTable = ({ collapsed }) => {
       ),
     },
     {
-      title: "本地完整请求路径",
-      dataIndex: "localFullPath",
-      // minWidth: 500,
-      // key: "path",
-      render: (text) => (
-        <Tooltip title={text}>
-          <div
-            style={{
-              color: "brown",
-              whiteSpace: "nowrap",
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              maxWidth: 800, // 根据需要设置宽度
-            }}
-          >
-            {text}
-          </div>
-        </Tooltip>
-      ),
-    },
-    // {
-    //   title: "get传参",
-    //   dataIndex: "queryString",
-    //   minWidth: 300,
-    //   align: "center",
-    //   render: (text) => (
-    //     <Tooltip title={text}>
-    //       <div
-    //         style={{
-    //           whiteSpace: "nowrap",
-    //           overflow: "hidden",
-    //           textOverflow: "ellipsis",
-    //           width: 300, // 根据需要设置宽度
-    //         }}
-    //       >
-    //         {text}
-    //       </div>
-    //     </Tooltip>
-    //   ),
-    // },
-    {
       title: "post传参",
       dataIndex: "postData",
       minWidth: 300,
       align: "center",
-      render: (text) => (
-        <Tooltip title={text}>
-          <div
-            style={{
-              whiteSpace: "nowrap",
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              width: 300, // 根据需要设置宽度
-            }}
-          >
-            {text}
-          </div>
-        </Tooltip>
-      ),
-    },
-    {
-      title: "源请求路径",
-      dataIndex: "fullpath",
-      minWidth: 300,
-      // key: "fullpath",
-      // align: "center",
-      // render: (text) => <span style={{ color: "gray" }}>{text}</span>,
       render: (text) => (
         <Tooltip title={text}>
           <div
@@ -280,6 +212,27 @@ const ApiTable = ({ collapsed }) => {
             onClick={() => handleDetail(record)}
           >
             响应数据
+          </Button>
+          <Button
+            color="primary"
+            variant="outlined"
+            onClick={() => handleDetail(record)}
+          >
+            编辑
+          </Button>
+          <Button
+            color="primary"
+            variant="outlined"
+            onClick={() => handleDetail(record)}
+          >
+            禁用
+          </Button>
+          <Button
+            color="primary"
+            variant="outlined"
+            onClick={() => handleDetail(record)}
+          >
+            删除
           </Button>
         </>
       ),
@@ -318,6 +271,13 @@ const ApiTable = ({ collapsed }) => {
           name="horizontal_login"
           layout="inline"
         >
+          <Form.Item>
+            <Button
+              type="primary"
+              shape="round"
+              icon={<PlusOutlined />}
+            ></Button>
+          </Form.Item>
           <Form.Item name="method">
             <Select
               style={{ width: "110px" }}

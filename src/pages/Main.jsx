@@ -21,10 +21,12 @@ import {
   AlertOutlined,
   CheckOutlined,
   CloseOutlined,
+  AndroidOutlined,
 } from "@ant-design/icons";
 import axiosInstance from "../api/api.js";
 import UploadTable from "../components/UploadTable";
 import ApiTable from "../components/ApiTable";
+import MyApiTable from "../components/MyApiTable";
 
 const { Header, Footer, Sider } = Layout;
 
@@ -64,7 +66,7 @@ const Main = () => {
     setSelectMenu("文件库");
     // 获取配置，设置是否匹配传参
     axiosInstance.get("/har/config/server").then((res) => {
-      console.log(res.data.config.allow);
+      // console.log(res.data.config.allow);
       setSwitchChecked(res.data.config.allow);
     }).catch((err) => {
       message.error(err || "获取配置失败");
@@ -121,6 +123,11 @@ const Main = () => {
                 icon: <WechatOutlined />,
                 label: "接口列表",
               },
+              {
+                key: "自定义接口",
+                icon: <AndroidOutlined />,
+                label: "自定义接口",
+              },
             ]}
           />
         </Sider>
@@ -164,6 +171,7 @@ const Main = () => {
                 <UploadTable collapsed={collapsed} onNotify={configInfo} />
               )}
               {selectMenu === "接口列表" && <ApiTable collapsed={collapsed} />}
+              {selectMenu === "自定义接口" && <MyApiTable collapsed={collapsed} />}
             </div>
           </Col>
           {/* <Col span={24}>
