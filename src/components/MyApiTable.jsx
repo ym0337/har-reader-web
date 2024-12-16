@@ -201,7 +201,7 @@ const ApiTable = ({ collapsed }) => {
   const onFinish = async (values) => {
     // console.log("Success:", values);
     // editStatus
-    const { method, path, postData, content, active, id } = values;
+    const { method, path, postData, content, active, mark, id } = values;
     if (id) {
       updateData({
         method,
@@ -209,6 +209,7 @@ const ApiTable = ({ collapsed }) => {
         postData,
         content,
         active,
+        mark,
         id,
       });
     } else {
@@ -218,6 +219,7 @@ const ApiTable = ({ collapsed }) => {
         postData,
         content,
         active,
+        mark,
       });
     }
   };
@@ -288,6 +290,12 @@ const ApiTable = ({ collapsed }) => {
           </div>
         </Tooltip>
       ),
+    },
+    
+    {
+      title: "备注",
+      dataIndex: "mark",
+      minWidth: 200
     },
     {
       title: "操作",
@@ -489,6 +497,7 @@ const ApiTable = ({ collapsed }) => {
               active: true,
               content: "",
               postData: "",
+              mark: "",
               id: ""
             }}
             onFinish={onFinish}
@@ -551,6 +560,10 @@ const ApiTable = ({ collapsed }) => {
 
             <Form.Item label="响应数据" name="content">
               <TextArea rows={8} />
+            </Form.Item>
+
+            <Form.Item label="备注" name="mark">
+              <TextArea rows={2} />
             </Form.Item>
 
             {/* <Form.Item label="创建时间" name="createdate">
