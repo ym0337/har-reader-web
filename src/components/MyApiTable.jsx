@@ -41,11 +41,13 @@ const ApiTable = ({ collapsed }) => {
       const {
         method = "",
         path = "",
-      } = form.getFieldsValue(["method", "path"]);
+        active = "",
+      } = form.getFieldsValue(["method", "path", "active"]);
       const response = await axiosInstance.get("/har/myApi/list", {
         params: {
           method: method.trim(),
           path: path.trim(),
+          active,
           pageNo: pageNo,
           pageSize: pageSize,
         },
@@ -379,6 +381,11 @@ const ApiTable = ({ collapsed }) => {
           form={form}
           name="horizontal_login"
           layout="inline"
+          initialValues={{
+            method: "",
+            path: "",
+            active: "",
+          }}
         >
           <Form.Item>
             <Button
@@ -409,6 +416,16 @@ const ApiTable = ({ collapsed }) => {
               placeholder="请求路径"
               allowClear
               // onClear={() => onFormChange()}
+            />
+          </Form.Item>
+          <Form.Item name="active" label="状态">
+            <Select
+              style={{ width: "110px" }}
+              showSearch
+              placeholder="激活状态"
+              options={[{ value: "", label: "全部" }, { value: "1", label: "激活" }, { value: "0", label: "禁用" }].map((m) => {
+                return { value: m.value, label: m.label };
+              })}
             />
           </Form.Item>
           <Button type="primary" onClick={() => getFileList()}>

@@ -22,6 +22,7 @@ import {
   CheckOutlined,
   CloseOutlined,
   AndroidOutlined,
+  ExclamationOutlined,
 } from "@ant-design/icons";
 import axiosInstance from "../api/api.js";
 import UploadTable from "../components/UploadTable";
@@ -162,6 +163,13 @@ const Main = () => {
                   checked={switchChecked}
                   onChange={(checked) => {changeSwitch(checked)}}
                 />
+              </Tag>
+              <Tag
+                style={{ fontSize: "12px", lineHeight: "24px" }}
+                icon={<ExclamationOutlined />}
+                color="red"
+              >
+                <span>若存在同名接口，自定义接口优先响应</span>
               </Tag>
             </Header>
           </Col>

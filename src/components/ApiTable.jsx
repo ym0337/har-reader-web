@@ -11,6 +11,7 @@ import {
   Select,
   Tooltip,
   Pagination,
+  Popconfirm,
 } from "antd";
 import axiosInstance, { baseURL } from "../api/api.js";
 
@@ -35,12 +36,14 @@ const ApiTable = ({ collapsed }) => {
         method = "",
         path = "",
         originfile = "",
-      } = form.getFieldsValue(["method", "path", "originfile"]);
+        active = "",
+      } = form.getFieldsValue(["method", "path", "originfile", "active"]);
       const response = await axiosInstance.get("/har/api/info", {
         params: {
           method: method.trim(),
           path: path.trim(),
           originfile: originfile.trim(),
+          active,
           pageNo: pageNo,
           pageSize: pageSize,
         },
@@ -74,6 +77,30 @@ const ApiTable = ({ collapsed }) => {
 
   const onPageChange = (page) => {
     setPageNo(page);
+  };
+
+  const handleDelete = async ({ id }) => {
+    try {
+      const response = await axiosInstance.delete(`/har/api/delete/${id}`);
+      message.success(response.data.message);
+      getFileList();
+    } catch (error) {
+      message.error(`请求失败:`, error);
+    }
+  };
+
+  const handleUpdate = async (row) => {
+    try {
+      const response = await axiosInstance.put(`/har/api/update`, {
+        // ...row,
+        id: row.id,
+        active: row.active === "激活" ? false : true,
+      });
+      message.success(response.data.message);
+      getFileList();
+    } catch (error) {
+      message.error(`请求失败:`, error);
+    }
   };
 
   const onShowSizeChange = (current, newPageSize) => {
@@ -163,6 +190,14 @@ const ApiTable = ({ collapsed }) => {
         >
           {text}
         </a>
+      ),
+    },
+    {
+      title: "状态",
+      dataIndex: "active",
+      width: 80,
+      render: (text) => (
+        <Tag color={text === "激活" ? "green" : "red"}>{text}</Tag>
       ),
     },
     {
@@ -275,12 +310,36 @@ const ApiTable = ({ collapsed }) => {
       render: (_, record) => (
         <>
           <Button
+            style={{ marginRight: "5px" }}
             color="primary"
             variant="outlined"
             onClick={() => handleDetail(record)}
           >
             响应数据
           </Button>
+          <Button
+            style={{
+              marginRight: "5px",
+              color: record.active === "激活" ? "red" : "green",
+            }}
+            color="primary"
+            variant="outlined"
+            onClick={() => handleUpdate(record)}
+          >
+            {record.active === "激活" ? "禁用" : "激活"}
+          </Button>
+          <Popconfirm
+            title="删除提示"
+            description={`确认删除 "${record.path}" 吗？`}
+            onConfirm={() => handleDelete(record)}
+            onCancel={() => message.error("取消删除")}
+            okText="是"
+            cancelText="否"
+          >
+            <Button color="danger" variant="solid">
+              删除
+            </Button>
+          </Popconfirm>
         </>
       ),
     },
@@ -317,6 +376,12 @@ const ApiTable = ({ collapsed }) => {
           form={form}
           name="horizontal_login"
           layout="inline"
+          initialValues={{
+            method: "",
+            path: "",
+            originfile: "",
+            active: "",
+          }}
         >
           <Form.Item name="method">
             <Select
@@ -348,10 +413,21 @@ const ApiTable = ({ collapsed }) => {
               allowClear
             />
           </Form.Item>
-          <Button
-            type="primary"
-            onClick={() => getFileList()}
-          >
+          <Form.Item name="active" label="状态">
+            <Select
+              style={{ width: "110px" }}
+              showSearch
+              placeholder="激活状态"
+              options={[
+                { value: "", label: "全部" },
+                { value: "1", label: "激活" },
+                { value: "0", label: "禁用" },
+              ].map((m) => {
+                return { value: m.value, label: m.label };
+              })}
+            />
+          </Form.Item>
+          <Button type="primary" onClick={() => getFileList()}>
             查询
           </Button>
         </Form>
