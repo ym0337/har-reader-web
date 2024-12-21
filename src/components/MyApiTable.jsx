@@ -17,6 +17,8 @@ import {
   DatePicker,
 } from "antd";
 import axiosInstance, { baseURL } from "../api/api.js";
+import { handleDoubleClick } from '@/utils/utils.js'
+import ModalTitle from "./ModalTitle.jsx";
 
 const { TextArea } = Input;
 const { Content } = Layout;
@@ -350,17 +352,6 @@ const ApiTable = ({ collapsed }) => {
     },
   ];
 
-  const handleDoubleClick = (text) => {
-    navigator.clipboard
-      .writeText(text)
-      .then(() => {
-        message.success("复制成功！");
-      })
-      .catch(() => {
-        message.error("复制失败！");
-      });
-  };
-
   const customColumns = columns.map((col) => ({
     ...col,
     onCell: (record) => ({
@@ -393,7 +384,7 @@ const ApiTable = ({ collapsed }) => {
               shape="round"
               icon={<PlusOutlined />}
               onClick={() => showModal()}
-            ></Button>
+            >新增</Button>
           </Form.Item>
           <Form.Item name="method">
             <Select
@@ -454,7 +445,7 @@ const ApiTable = ({ collapsed }) => {
           />
         </div>
         <Modal
-          title={modalTitle}
+          title={<ModalTitle title={modalTitle}/>}
           centered
           open={open}
           onCancel={() => setOpen(false)}
@@ -466,7 +457,7 @@ const ApiTable = ({ collapsed }) => {
               type="primary"
               onClick={() => handleDoubleClick(responseData)}
             >
-              复制
+              复制响应数据
             </Button>,
             <Button key="cancel" onClick={() => setOpen(false)}>
               关闭
