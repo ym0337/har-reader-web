@@ -486,6 +486,7 @@ const ApiTable = ({ collapsed }) => {
           cancelText="取消"
           onOk={handleOk}
           onCancel={handleCancel}
+          width={850}
         >
           <Form
             name="basic"
@@ -497,7 +498,7 @@ const ApiTable = ({ collapsed }) => {
               span: 20,
             }}
             style={{
-              maxWidth: 600,
+              maxWidth: 850,
             }}
             initialValues={{
               method: "GET",
