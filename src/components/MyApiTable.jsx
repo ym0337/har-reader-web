@@ -37,6 +37,11 @@ const ApiTable = ({ collapsed }) => {
 
   const [form] = Form.useForm();
 
+  // 查询按钮
+  const searchFileList = () => {
+    setPageNo(1);
+    getFileList();
+  }
   // 获取文件列表
   const getFileList = async (type = 0) => {
     try {
@@ -419,7 +424,7 @@ const ApiTable = ({ collapsed }) => {
               })}
             />
           </Form.Item>
-          <Button type="primary" onClick={() => getFileList()}>
+          <Button type="primary" onClick={() => searchFileList()}>
             查询
           </Button>
         </Form>

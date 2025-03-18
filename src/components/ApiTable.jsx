@@ -15,7 +15,7 @@ import {
 } from "antd";
 import { CopyOutlined } from "@ant-design/icons";
 import axiosInstance, { baseURL } from "../api/api.js";
-import { handleDoubleClick } from '@/utils/utils.js'
+import { handleDoubleClick } from "@/utils/utils.js";
 import ModalTitle from "./ModalTitle.jsx";
 
 const { Content } = Layout;
@@ -32,6 +32,11 @@ const ApiTable = ({ collapsed }) => {
 
   const [form] = Form.useForm();
 
+  // 查询按钮
+  const searchFileList = () => {
+    setPageNo(1);
+    getFileList();
+  };
   // 获取文件列表
   const getFileList = async (type = 0) => {
     try {
@@ -87,6 +92,33 @@ const ApiTable = ({ collapsed }) => {
       const response = await axiosInstance.delete(`/har/api/delete/${id}`);
       message.success(response.data.message);
       getFileList();
+    } catch (error) {
+      message.error(`请求失败:`, error);
+    }
+  };
+
+  const handleCopy = async ({
+    id,
+    method,
+    path,
+    active,
+    postData,
+    originfile,
+  }) => {
+    try {
+      // 获取响应数据
+      const responseApi = await axiosInstance.get(`/har/api/detail/${id}`);
+
+      // 拼装数据接口
+      const response = await axiosInstance.post(`/har/myApi/add`, {
+        method,
+        path,
+        postData,
+        content: JSON.stringify(responseApi.data),
+        active: active === "激活" ? true : false,
+        mark: `来源文件: ${originfile}`,
+      });
+      message.success(response.data.message);
     } catch (error) {
       message.error(`请求失败:`, error);
     }
@@ -332,6 +364,25 @@ const ApiTable = ({ collapsed }) => {
             {record.active === "激活" ? "禁用" : "激活"}
           </Button>
           <Popconfirm
+            title="操作提示"
+            description={`复制 "${record.path}" 到自定义接口？`}
+            onConfirm={() => handleCopy(record)}
+            onCancel={() => message.error("取消操作")}
+            placement="topLeft"
+            okText="是"
+            cancelText="否"
+          >
+            <Button
+              style={{
+                marginRight: "5px",
+              }}
+              color="primary"
+              variant="solid"
+            >
+              复制
+            </Button>
+          </Popconfirm>
+          <Popconfirm
             title="删除提示"
             description={`确认删除 "${record.path}" 吗？`}
             onConfirm={() => handleDelete(record)}
@@ -419,7 +470,7 @@ const ApiTable = ({ collapsed }) => {
               })}
             />
           </Form.Item>
-          <Button type="primary" onClick={() => getFileList()}>
+          <Button type="primary" onClick={() => searchFileList()}>
             查询
           </Button>
         </Form>
@@ -445,7 +496,7 @@ const ApiTable = ({ collapsed }) => {
           />
         </div>
         <Modal
-          title={<ModalTitle title={modalTitle}/>}
+          title={<ModalTitle title={modalTitle} />}
           centered
           open={open}
           onCancel={() => setOpen(false)}
