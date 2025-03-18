@@ -17,6 +17,7 @@ import { CopyOutlined } from "@ant-design/icons";
 import axiosInstance, { baseURL } from "../api/api.js";
 import { handleDoubleClick } from "@/utils/utils.js";
 import ModalTitle from "./ModalTitle.jsx";
+import dayjs from 'dayjs';
 
 const { Content } = Layout;
 
@@ -106,6 +107,7 @@ const ApiTable = ({ collapsed }) => {
     originfile,
   }) => {
     try {
+      const currentTime = dayjs().format('YYYY-MM-DD HH:mm:ss');
       // 获取响应数据
       const responseApi = await axiosInstance.get(`/har/api/detail/${id}`);
 
@@ -116,7 +118,7 @@ const ApiTable = ({ collapsed }) => {
         postData,
         content: JSON.stringify(responseApi.data),
         active: active === "激活" ? true : false,
-        mark: `来源文件: ${originfile}`,
+        mark: `创建于 ${currentTime}, 来源文件: ${originfile}`,
       });
       message.success(response.data.message);
     } catch (error) {
